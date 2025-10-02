@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, ScrollView, TextInput } from 'react-native';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 export default function SimpleDiary() {
   const [entries, setEntries] = useState<{ [key: string]: string }>({});
@@ -19,16 +19,29 @@ export default function SimpleDiary() {
 
   const Slot = ({ time, slot }: { time: string; slot: number }) => {
     const key = `${time}-${slot}`;
-    const value = entries[key] || '';
+    const [localValue, setLocalValue] = useState('');
+    
+    // Sync with global state
+    useEffect(() => {
+      const globalValue = entries[key] || '';
+      setLocalValue(globalValue);
+    }, [entries[key], key]);
+
+    const handleTextChange = (text: string) => {
+      setLocalValue(text);
+      updateEntry(key, text);
+    };
 
     return (
       <View style={styles.slotContainer}>
         <TextInput
           style={styles.slotInput}
-          value={value}
-          onChangeText={(text: string) => updateEntry(key, text)}
+          value={localValue}
+          onChangeText={handleTextChange}
           placeholder="Type here"
           placeholderTextColor="#d1d5db"
+          autoCorrect={false}
+          autoCapitalize="none"
         />
       </View>
     );
