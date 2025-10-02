@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, ScrollView, TextInput } from 'react-native';
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useRef, memo } from 'react';
 
 export default function SimpleDiary() {
   const [entries, setEntries] = useState<{ [key: string]: string }>({});
@@ -17,35 +17,30 @@ export default function SimpleDiary() {
     }));
   }, []);
 
-  const Slot = ({ time, slot }: { time: string; slot: number }) => {
+  const Slot = memo(({ time, slot, value, onUpdate }: { 
+    time: string; 
+    slot: number; 
+    value: string;
+    onUpdate: (key: string, text: string) => void;
+  }) => {
     const key = `${time}-${slot}`;
-    const [localValue, setLocalValue] = useState('');
-    
-    // Sync with global state
-    useEffect(() => {
-      const globalValue = entries[key] || '';
-      setLocalValue(globalValue);
-    }, [entries[key], key]);
-
-    const handleTextChange = (text: string) => {
-      setLocalValue(text);
-      updateEntry(key, text);
-    };
 
     return (
       <View style={styles.slotContainer}>
         <TextInput
           style={styles.slotInput}
-          value={localValue}
-          onChangeText={handleTextChange}
+          value={value}
+          onChangeText={(text: string) => onUpdate(key, text)}
           placeholder="Type here"
           placeholderTextColor="#d1d5db"
           autoCorrect={false}
           autoCapitalize="none"
+          multiline={true}
+          textAlignVertical="top"
         />
       </View>
     );
-  };
+  });
 
   return (
     <View style={styles.container}>
@@ -67,8 +62,18 @@ export default function SimpleDiary() {
                   <Text style={styles.timeText}>{time}</Text>
                 </View>
                 <View style={styles.slotsContainer}>
-                  <Slot time={time} slot={1} />
-                  <Slot time={time} slot={2} />
+                  <Slot 
+                    time={time} 
+                    slot={1} 
+                    value={entries[`${time}-1`] || ''} 
+                    onUpdate={updateEntry}
+                  />
+                  <Slot 
+                    time={time} 
+                    slot={2} 
+                    value={entries[`${time}-2`] || ''} 
+                    onUpdate={updateEntry}
+                  />
                 </View>
               </View>
             </View>
