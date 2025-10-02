@@ -31,13 +31,9 @@ export default function SimpleDiary() {
   };
 
   const updateEntry = (time: string, slot: number, value: string) => {
-    const key = `${time}-${slot}`;
-    setEntries((prev: { [key: string]: string }) => {
-      if (prev[key] === value) return prev; // Avoid unnecessary re-renders
-      return {
-        ...prev,
-        [key]: value
-      };
+    setEntries({
+      ...entries,
+      [`${time}-${slot}`]: value
     });
   };
 
@@ -53,35 +49,7 @@ export default function SimpleDiary() {
           onChangeText={(text: string) => updateEntry(time, slot, text)}
           placeholder="Type here"
           placeholderTextColor="#d1d5db"
-          multiline={true}
-          textAlignVertical="top"
-          blurOnSubmit={false}
-          returnKeyType="default"
         />
-        <View style={styles.presetButtonContainer}>
-          <TouchableOpacity
-            onPress={() => setShowPresets(showPresets === key ? null : key)}
-            style={styles.presetButton}
-          >
-            <Plus size={16} color="#9ca3af" />
-          </TouchableOpacity>
-          {showPresets === key && (
-            <View style={styles.presetDropdown}>
-              {presets.map((preset, idx) => (
-                <TouchableOpacity
-                  key={idx}
-                  onPress={() => addPreset(time, slot, preset)}
-                  style={[
-                    styles.presetItem,
-                    idx === presets.length - 1 && styles.presetItemLast
-                  ]}
-                >
-                  <Text style={styles.presetItemText}>{preset}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-        </View>
       </View>
     );
   };
