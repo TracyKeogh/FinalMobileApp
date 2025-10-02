@@ -1,136 +1,108 @@
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Modal } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 'react-native';
 import { useState } from 'react';
 import { Plus } from 'lucide-react-native';
 
-const PRESET_ACTIONS = [
-  'Sleep',
-  'Morning routine',
-  'Workout',
-  'Work',
-  'Meeting',
-  'Lunch',
-  'Break',
-  'Study',
-  'Commute',
-  'Dinner',
-  'Family time',
-  'Hobbies',
-  'Reading',
-];
-
-const TIME_SLOTS = [
-  { hour: 5, label: '5AM' },
-  { hour: 6, label: '6AM' },
-  { hour: 7, label: '7AM' },
-  { hour: 8, label: '8AM' },
-  { hour: 9, label: '9AM' },
-  { hour: 10, label: '10AM' },
-  { hour: 11, label: '11AM' },
-  { hour: 12, label: '12PM' },
-  { hour: 13, label: '1PM' },
-  { hour: 14, label: '2PM' },
-  { hour: 15, label: '3PM' },
-  { hour: 16, label: '4PM' },
-  { hour: 17, label: '5PM' },
-  { hour: 18, label: '6PM' },
-  { hour: 19, label: '7PM' },
-  { hour: 20, label: '8PM' },
-  { hour: 21, label: '9PM' },
-  { hour: 22, label: '10PM' },
-  { hour: 23, label: '11PM' },
-];
-
-export default function DiaryScreen() {
+export default function SimpleDiary() {
   const [entries, setEntries] = useState<{ [key: string]: string }>({});
   const [showPresets, setShowPresets] = useState<string | null>(null);
+  
+  // These would come from user's custom presets in the web app
+  const presets = [
+    'Feed Brian',
+    'Take medication',
+    'Walk dog',
+    'Check email',
+    'Lunch break',
+    'Team standup'
+  ];
 
-  const today = new Date().toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric'
-  });
+  const times = [
+    '5AM', '6AM', '7AM', '8AM', '9AM', '10AM', '11AM',
+    '12PM', '1PM', '2PM', '3PM', '4PM', '5PM', '6PM',
+    '7PM', '8PM', '9PM', '10PM', '11PM'
+  ];
 
-  const updateEntry = (hour: number, slot: number, value: string) => {
-    setEntries(prev => ({
+  const addPreset = (time: string, slot: number, preset: string) => {
+    setEntries((prev: { [key: string]: string }) => ({
       ...prev,
-      [`${hour}-${slot}`]: value
-    }));
-  };
-
-  const addPreset = (hour: number, slot: number, preset: string) => {
-    setEntries(prev => ({
-      ...prev,
-      [`${hour}-${slot}`]: preset
+      [`${time}-${slot}`]: preset
     }));
     setShowPresets(null);
   };
 
-  const togglePresets = (hour: number, slot: number) => {
-    const key = `${hour}-${slot}`;
-    setShowPresets(showPresets === key ? null : key);
+  const updateEntry = (time: string, slot: number, value: string) => {
+    setEntries((prev: { [key: string]: string }) => ({
+      ...prev,
+      [`${time}-${slot}`]: value
+    }));
+  };
+
+  const Slot = ({ time, slot }: { time: string; slot: number }) => {
+    const key = `${time}-${slot}`;
+    const value = entries[key];
+
+    return (
+      <View style={styles.slotContainer}>
+        <TextInput
+          style={styles.slotInput}
+          value={value || ''}
+          onChangeText={(text: string) => updateEntry(time, slot, text)}
+          placeholder="Type here"
+          placeholderTextColor="#d1d5db"
+        />
+        <View style={styles.presetButtonContainer}>
+          <TouchableOpacity
+            onPress={() => setShowPresets(showPresets === key ? null : key)}
+            style={styles.presetButton}
+          >
+            <Plus size={16} color="#9ca3af" />
+          </TouchableOpacity>
+          {showPresets === key && (
+            <View style={styles.presetDropdown}>
+              {presets.map((preset, idx) => (
+                <TouchableOpacity
+                  key={idx}
+                  onPress={() => addPreset(time, slot, preset)}
+                  style={styles.presetItem}
+                >
+                  <Text style={styles.presetItemText}>{preset}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
+      </View>
+    );
   };
 
   return (
     <View style={styles.container}>
-      <View style={styles.paper}>
+      <View style={styles.maxWidth}>
+        
+        {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerDate}>{today}</Text>
+          <Text style={styles.headerDate}>
+            {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+          </Text>
         </View>
 
-        <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
-          {TIME_SLOTS.map((slot) => {
-            const value = timeSlots[slot.hour] || '';
-
-            return (
-              <View key={slot.hour} style={styles.row}>
-                <Text style={styles.time}>{slot.label}</Text>
-                <View style={styles.line} />
-                <TextInput
-                  style={styles.input}
-                  value={value}
-                  onChangeText={(text) => updateTimeSlot(slot.hour, text)}
-                  placeholder=""
-                  placeholderTextColor="#d1d5db"
-                />
-                <TouchableOpacity
-                  style={styles.addButton}
-                  onPress={() => openPresetPicker(slot.hour)}>
-                  <Plus size={18} color="#9ca3af" strokeWidth={2} />
-                </TouchableOpacity>
+        {/* Entries */}
+        <ScrollView style={styles.entriesContainer}>
+          {times.map((time) => (
+            <View key={time} style={styles.timeRow}>
+              <View style={styles.timeRowContent}>
+                <View style={styles.timeLabel}>
+                  <Text style={styles.timeText}>{time}</Text>
+                </View>
+                <View style={styles.slotsContainer}>
+                  <Slot time={time} slot={1} />
+                  <Slot time={time} slot={2} />
+                </View>
               </View>
-            );
-          })}
+            </View>
+          ))}
         </ScrollView>
       </View>
-
-      <Modal
-        visible={showPresets}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowPresets(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Select Action</Text>
-            <ScrollView style={styles.presetsList}>
-              {PRESET_ACTIONS.map((action) => (
-                <TouchableOpacity
-                  key={action}
-                  style={styles.presetItem}
-                  onPress={() => selectPreset(action)}>
-                  <Text style={styles.presetItemText}>{action}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-            <TouchableOpacity
-              style={styles.modalCancelButton}
-              onPress={() => {
-                setShowPresets(false);
-                setSelectedHour(null);
-              }}>
-              <Text style={styles.modalCancelText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }
@@ -138,129 +110,96 @@ export default function DiaryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#e8e5db',
+    backgroundColor: '#ffffff',
   },
-  paper: {
+  maxWidth: {
     flex: 1,
-    backgroundColor: '#fffef7',
-    marginTop: 50,
-    marginHorizontal: 20,
-    marginBottom: 20,
-    borderRadius: 2,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    maxWidth: 400,
+    alignSelf: 'center',
+    width: '100%',
   },
   header: {
-    paddingTop: 30,
-    paddingBottom: 20,
-    paddingHorizontal: 30,
-    borderBottomWidth: 2,
-    borderBottomColor: '#2c2c2c',
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: '400',
-    color: '#2c2c2c',
-    marginBottom: 8,
-    fontFamily: 'serif',
-  },
-  headerDate: {
-    fontSize: 14,
-    color: '#6b7280',
-    fontFamily: 'serif',
-  },
-  content: {
-    flex: 1,
-  },
-  contentContainer: {
-    padding: 30,
-    paddingTop: 24,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-    gap: 12,
-  },
-  time: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#6b7280',
-    width: 45,
-    fontFamily: 'serif',
-  },
-  line: {
-    width: 1,
-    height: 20,
-    backgroundColor: '#d1d5db',
-  },
-  input: {
-    flex: 1,
-    fontSize: 15,
-    color: '#2c2c2c',
-    paddingVertical: 4,
-    paddingHorizontal: 0,
+    paddingHorizontal: 20,
+    paddingVertical: 24,
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
-    fontFamily: 'serif',
   },
-  addButton: {
-    width: 28,
-    height: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
+  headerDate: {
+    fontSize: 32,
+    fontWeight: '300',
+    color: '#000000',
   },
-  modalOverlay: {
+  entriesContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
   },
-  modalContent: {
+  timeRow: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  timeRowContent: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  timeLabel: {
+    width: 64,
+    paddingTop: 16,
+    paddingLeft: 20,
+  },
+  timeText: {
+    fontSize: 12,
+    color: '#9ca3af',
+  },
+  slotsContainer: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingRight: 20,
+  },
+  slotContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  slotInput: {
+    flex: 1,
+    fontSize: 14,
+    color: '#000000',
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+  },
+  presetButtonContainer: {
+    position: 'relative',
+    marginLeft: 8,
+  },
+  presetButton: {
+    padding: 4,
+    borderRadius: 4,
+  },
+  presetDropdown: {
+    position: 'absolute',
+    top: '100%',
+    right: 0,
+    marginTop: 4,
     backgroundColor: '#ffffff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingTop: 20,
-    paddingBottom: 40,
-    paddingHorizontal: 20,
-    maxHeight: '70%',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  presetsList: {
-    maxHeight: 400,
-  },
-  presetItem: {
-    backgroundColor: '#f9fafb',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    marginBottom: 8,
     borderWidth: 1,
     borderColor: '#e5e7eb',
+    borderRadius: 8,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 8,
+    zIndex: 10,
+    width: 192,
+  },
+  presetItem: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
   },
   presetItemText: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#111827',
-  },
-  modalCancelButton: {
-    backgroundColor: '#f3f4f6',
-    paddingVertical: 14,
-    borderRadius: 8,
-    marginTop: 12,
-    alignItems: 'center',
-  },
-  modalCancelText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#6b7280',
+    fontSize: 14,
+    color: '#000000',
+    textAlign: 'left',
   },
 });
