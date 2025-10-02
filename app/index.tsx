@@ -18,50 +18,61 @@ const PRESET_ACTIONS = [
   'Reading',
 ];
 
-const TIME_SLOTS = Array.from({ length: 24 }, (_, i) => {
-  const hour = i;
-  const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-  const period = hour < 12 ? 'AM' : 'PM';
-  return {
-    hour,
-    label: `${displayHour}${period}`,
-  };
-});
+const TIME_SLOTS = [
+  { hour: 5, label: '5AM' },
+  { hour: 6, label: '6AM' },
+  { hour: 7, label: '7AM' },
+  { hour: 8, label: '8AM' },
+  { hour: 9, label: '9AM' },
+  { hour: 10, label: '10AM' },
+  { hour: 11, label: '11AM' },
+  { hour: 12, label: '12PM' },
+  { hour: 13, label: '1PM' },
+  { hour: 14, label: '2PM' },
+  { hour: 15, label: '3PM' },
+  { hour: 16, label: '4PM' },
+  { hour: 17, label: '5PM' },
+  { hour: 18, label: '6PM' },
+  { hour: 19, label: '7PM' },
+  { hour: 20, label: '8PM' },
+  { hour: 21, label: '9PM' },
+  { hour: 22, label: '10PM' },
+  { hour: 23, label: '11PM' },
+];
 
 export default function DiaryScreen() {
-  const [timeSlots, setTimeSlots] = useState<{ [key: number]: string }>({});
-  const [selectedHour, setSelectedHour] = useState<number | null>(null);
-  const [showPresets, setShowPresets] = useState(false);
+  const [entries, setEntries] = useState<{ [key: string]: string }>({});
+  const [showPresets, setShowPresets] = useState<string | null>(null);
 
   const today = new Date().toLocaleDateString('en-US', {
-    weekday: 'long',
     month: 'long',
-    day: 'numeric',
-    year: 'numeric'
+    day: 'numeric'
   });
 
-  const updateTimeSlot = (hour: number, value: string) => {
-    setTimeSlots({ ...timeSlots, [hour]: value });
+  const updateEntry = (hour: number, slot: number, value: string) => {
+    setEntries(prev => ({
+      ...prev,
+      [`${hour}-${slot}`]: value
+    }));
   };
 
-  const selectPreset = (action: string) => {
-    if (selectedHour !== null) {
-      updateTimeSlot(selectedHour, action);
-      setShowPresets(false);
-      setSelectedHour(null);
-    }
+  const addPreset = (hour: number, slot: number, preset: string) => {
+    setEntries(prev => ({
+      ...prev,
+      [`${hour}-${slot}`]: preset
+    }));
+    setShowPresets(null);
   };
 
-  const openPresetPicker = (hour: number) => {
-    setSelectedHour(hour);
-    setShowPresets(true);
+  const togglePresets = (hour: number, slot: number) => {
+    const key = `${hour}-${slot}`;
+    setShowPresets(showPresets === key ? null : key);
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.paper}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Daily Diary</Text>
           <Text style={styles.headerDate}>{today}</Text>
         </View>
 
