@@ -11,28 +11,38 @@ export default function SimpleDiary() {
   ];
 
   const updateEntry = useCallback((key: string, value: string) => {
-    setTimeout(() => {
-      setEntries((prev) => ({
-        ...prev,
-        [key]: value
-      }));
-    }, 0);
+    setEntries((prev) => ({
+      ...prev,
+      [key]: value
+    }));
   }, []);
 
-  const Slot = memo(({ time, slot, value, onUpdate }: { 
+  const Slot = memo(({ time, slot, initialValue, onUpdate }: { 
     time: string; 
     slot: number; 
-    value: string;
+    initialValue: string;
     onUpdate: (key: string, text: string) => void;
   }) => {
     const key = `${time}-${slot}`;
+    const inputRef = useRef<TextInput>(null);
+    const [currentText, setCurrentText] = useState(initialValue);
+
+    const handleTextChange = (text: string) => {
+      setCurrentText(text);
+    };
+
+    const handleBlur = () => {
+      onUpdate(key, currentText);
+    };
 
     return (
       <View style={styles.slotContainer}>
         <TextInput
+          ref={inputRef}
           style={styles.slotInput}
-          value={value}
-          onChangeText={(text: string) => onUpdate(key, text)}
+          value={currentText}
+          onChangeText={handleTextChange}
+          onBlur={handleBlur}
           placeholder="Type here"
           placeholderTextColor="#d1d5db"
           autoCorrect={false}
@@ -68,13 +78,13 @@ export default function SimpleDiary() {
                   <Slot 
                     time={time} 
                     slot={1} 
-                    value={entries[`${time}-1`] || ''} 
+                    initialValue={entries[`${time}-1`] || ''} 
                     onUpdate={updateEntry}
                   />
                   <Slot 
                     time={time} 
                     slot={2} 
-                    value={entries[`${time}-2`] || ''} 
+                    initialValue={entries[`${time}-2`] || ''} 
                     onUpdate={updateEntry}
                   />
                 </View>
