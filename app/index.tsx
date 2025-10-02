@@ -49,7 +49,8 @@ export default function SimpleDiary() {
           autoCapitalize="none"
           multiline={false}
           underlineColorAndroid="transparent"
-          selectionColor="#000000"
+          selectionColor="transparent"
+          textAlignVertical="center"
         />
       </View>
     );
@@ -158,6 +159,7 @@ const styles = StyleSheet.create({
     minHeight: 20,
     borderWidth: 0,
     backgroundColor: 'transparent',
+    outlineStyle: 'none',
     // outline-none equivalent (no border/outline)
   },
   presetButtonContainer: {
