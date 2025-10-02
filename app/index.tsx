@@ -31,24 +31,32 @@ export default function SimpleDiary() {
   };
 
   const updateEntry = (time: string, slot: number, value: string) => {
-    setEntries((prev: { [key: string]: string }) => ({
-      ...prev,
-      [`${time}-${slot}`]: value
-    }));
+    const key = `${time}-${slot}`;
+    setEntries((prev: { [key: string]: string }) => {
+      if (prev[key] === value) return prev; // Avoid unnecessary re-renders
+      return {
+        ...prev,
+        [key]: value
+      };
+    });
   };
 
   const Slot = ({ time, slot }: { time: string; slot: number }) => {
     const key = `${time}-${slot}`;
-    const value = entries[key];
+    const value = entries[key] || '';
 
     return (
       <View style={styles.slotContainer}>
         <TextInput
           style={styles.slotInput}
-          value={value || ''}
+          value={value}
           onChangeText={(text: string) => updateEntry(time, slot, text)}
           placeholder="Type here"
           placeholderTextColor="#d1d5db"
+          multiline={true}
+          textAlignVertical="top"
+          blurOnSubmit={false}
+          returnKeyType="default"
         />
         <View style={styles.presetButtonContainer}>
           <TouchableOpacity
@@ -166,8 +174,10 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14, // text-sm = 14px
     color: '#000000',
-    paddingVertical: 0,
+    paddingVertical: 4,
     paddingHorizontal: 0,
+    minHeight: 20,
+    textAlignVertical: 'top',
     // outline-none equivalent (no border/outline)
   },
   presetButtonContainer: {
