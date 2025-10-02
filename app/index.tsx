@@ -63,7 +63,10 @@ export default function SimpleDiary() {
                 <TouchableOpacity
                   key={idx}
                   onPress={() => addPreset(time, slot, preset)}
-                  style={styles.presetItem}
+                  style={[
+                    styles.presetItem,
+                    idx === presets.length - 1 && styles.presetItemLast
+                  ]}
                 >
                   <Text style={styles.presetItemText}>{preset}</Text>
                 </TouchableOpacity>
@@ -114,19 +117,19 @@ const styles = StyleSheet.create({
   },
   maxWidth: {
     flex: 1,
-    maxWidth: 400,
+    maxWidth: 384, // max-w-sm = 384px
     alignSelf: 'center',
     width: '100%',
   },
   header: {
-    paddingHorizontal: 20,
-    paddingVertical: 24,
+    paddingHorizontal: 20, // px-5 = 20px
+    paddingVertical: 24, // py-6 = 24px
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
   },
   headerDate: {
-    fontSize: 32,
-    fontWeight: '300',
+    fontSize: 24, // text-2xl = 24px
+    fontWeight: '300', // font-light = 300
     color: '#000000',
   },
   entriesContainer: {
@@ -141,64 +144,74 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   timeLabel: {
-    width: 64,
-    paddingTop: 16,
-    paddingLeft: 20,
+    width: 64, // w-16 = 64px
+    paddingTop: 16, // pt-4 = 16px
+    paddingLeft: 20, // pl-5 = 20px
   },
   timeText: {
-    fontSize: 12,
-    color: '#9ca3af',
+    fontSize: 12, // text-xs = 12px
+    color: '#9ca3af', // text-gray-400
   },
   slotsContainer: {
     flex: 1,
-    paddingVertical: 12,
-    paddingRight: 20,
+    paddingVertical: 12, // py-3 = 12px
+    paddingRight: 20, // pr-5 = 20px
   },
   slotContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 8, // py-2 = 8px
   },
   slotInput: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 14, // text-sm = 14px
     color: '#000000',
     paddingVertical: 0,
     paddingHorizontal: 0,
+    // outline-none equivalent (no border/outline)
   },
   presetButtonContainer: {
     position: 'relative',
-    marginLeft: 8,
+    marginLeft: 8, // gap-2 equivalent
   },
   presetButton: {
-    padding: 4,
+    padding: 4, // p-1 = 4px
     borderRadius: 4,
+    backgroundColor: 'transparent',
+  },
+  presetButtonHover: {
+    backgroundColor: '#f3f4f6', // hover:bg-gray-100
   },
   presetDropdown: {
     position: 'absolute',
-    top: '100%',
-    right: 0,
-    marginTop: 4,
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 8,
+    top: '100%', // top-full
+    right: 0, // right-0
+    marginTop: 4, // mt-1 = 4px
+    backgroundColor: '#ffffff', // bg-white
+    borderWidth: 1, // border
+    borderColor: '#d1d5db',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.25, // shadow-lg
     shadowRadius: 8,
     elevation: 8,
-    zIndex: 10,
-    width: 192,
+    zIndex: 10, // z-10
+    width: 192, // w-48 = 192px
   },
   presetItem: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderBottomWidth: 1,
+    paddingVertical: 8, // py-2 = 8px
+    paddingHorizontal: 12, // px-3 = 12px
+    borderBottomWidth: 1, // border-b
     borderBottomColor: '#e5e7eb',
   },
+  presetItemLast: {
+    borderBottomWidth: 0, // last:border-b-0
+  },
+  presetItemHover: {
+    backgroundColor: '#f9fafb', // hover:bg-gray-50
+  },
   presetItemText: {
-    fontSize: 14,
+    fontSize: 14, // text-sm = 14px
     color: '#000000',
     textAlign: 'left',
   },
