@@ -1,20 +1,8 @@
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 'react-native';
-import { useState } from 'react';
-import { Plus } from 'lucide-react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput } from 'react-native';
+import { useState, useCallback } from 'react';
 
 export default function SimpleDiary() {
   const [entries, setEntries] = useState<{ [key: string]: string }>({});
-  const [showPresets, setShowPresets] = useState<string | null>(null);
-  
-  // These would come from user's custom presets in the web app
-  const presets = [
-    'Feed Brian',
-    'Take medication',
-    'Walk dog',
-    'Check email',
-    'Lunch break',
-    'Team standup'
-  ];
 
   const times = [
     '5AM', '6AM', '7AM', '8AM', '9AM', '10AM', '11AM',
@@ -22,20 +10,12 @@ export default function SimpleDiary() {
     '7PM', '8PM', '9PM', '10PM', '11PM'
   ];
 
-  const addPreset = (time: string, slot: number, preset: string) => {
-    setEntries((prev: { [key: string]: string }) => ({
+  const updateEntry = useCallback((key: string, value: string) => {
+    setEntries((prev) => ({
       ...prev,
-      [`${time}-${slot}`]: preset
+      [key]: value
     }));
-    setShowPresets(null);
-  };
-
-  const updateEntry = (time: string, slot: number, value: string) => {
-    setEntries({
-      ...entries,
-      [`${time}-${slot}`]: value
-    });
-  };
+  }, []);
 
   const Slot = ({ time, slot }: { time: string; slot: number }) => {
     const key = `${time}-${slot}`;
@@ -46,7 +26,7 @@ export default function SimpleDiary() {
         <TextInput
           style={styles.slotInput}
           value={value}
-          onChangeText={(text: string) => updateEntry(time, slot, text)}
+          onChangeText={(text: string) => updateEntry(key, text)}
           placeholder="Type here"
           placeholderTextColor="#d1d5db"
         />
