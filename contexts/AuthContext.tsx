@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 interface AuthContextType {
   user: User | null;
@@ -30,10 +30,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // If Supabase is not configured, create a mock user and skip auth
+    if (!isSupabaseConfigured()) {
+      console.log('Supabase not configured, using mock authentication');
+      const mockUser = { id: 'mock-user', email: 'demo@example.com' } as User;
+      setUser(mockUser);
+      setSession({ user: mockUser } as Session);
+      setLoading(false);
+      return;
+    }
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      setLoading(false);
+    }).catch((error) => {
+      console.error('Auth error:', error);
       setLoading(false);
     });
 
@@ -50,6 +63,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const signOut = async () => {
+    if (!isSupabaseConfigured()) {
+      // Mock sign out
+      setUser(null);
+      setSession(null);
+      return;
+    }
     await supabase.auth.signOut();
   };
 

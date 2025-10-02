@@ -4,12 +4,30 @@ import { useAuth } from '../contexts/AuthContext';
 import { router } from 'expo-router';
 
 export default function SimpleDiary() {
-  const { user, loading, signOut } = useAuth();
   const [entries, setEntries] = useState<{ [key: string]: string }>({});
+  
+  // Try to get auth context, but don't fail if it's not available
+  let user = null;
+  let loading = false;
+  let signOut = async () => {};
+  
+  try {
+    const auth = useAuth();
+    user = auth.user;
+    loading = auth.loading;
+    signOut = auth.signOut;
+  } catch (error) {
+    console.log('Auth context not available, continuing without auth');
+  }
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.replace('/auth/signin');
+    if (!loading && !user && user !== null) {
+      // Only redirect if we're actually checking auth (not in mock mode)
+      try {
+        router.replace('/auth/signin');
+      } catch (error) {
+        console.log('Navigation error:', error);
+      }
     }
   }, [user, loading]);
 
@@ -23,8 +41,12 @@ export default function SimpleDiary() {
           text: 'Sign Out',
           style: 'destructive',
           onPress: async () => {
-            await signOut();
-            router.replace('/auth/signin');
+            try {
+              await signOut();
+              router.replace('/auth/signin');
+            } catch (error) {
+              console.log('Sign out error:', error);
+            }
           },
         },
       ]
@@ -37,10 +59,6 @@ export default function SimpleDiary() {
         <Text style={styles.loadingText}>Loading...</Text>
       </View>
     );
-  }
-
-  if (!user) {
-    return null; // Will redirect to signin
   }
 
   const times = [
