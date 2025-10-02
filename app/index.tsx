@@ -1,65 +1,8 @@
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert } from 'react-native';
-import { useState, useCallback, useRef, memo, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { router } from 'expo-router';
+import { View, Text, StyleSheet, ScrollView, TextInput } from 'react-native';
+import { useState, useCallback, useRef, memo } from 'react';
 
 export default function SimpleDiary() {
   const [entries, setEntries] = useState<{ [key: string]: string }>({});
-  
-  // Try to get auth context, but don't fail if it's not available
-  let user = null;
-  let loading = false;
-  let signOut = async () => {};
-  
-  try {
-    const auth = useAuth();
-    user = auth.user;
-    loading = auth.loading;
-    signOut = auth.signOut;
-  } catch (error) {
-    console.log('Auth context not available, continuing without auth');
-  }
-
-  useEffect(() => {
-    if (!loading && !user && user !== null) {
-      // Only redirect if we're actually checking auth (not in mock mode)
-      try {
-        router.replace('/auth/signin');
-      } catch (error) {
-        console.log('Navigation error:', error);
-      }
-    }
-  }, [user, loading]);
-
-  const handleSignOut = async () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Sign Out',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await signOut();
-              router.replace('/auth/signin');
-            } catch (error) {
-              console.log('Sign out error:', error);
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>Loading...</Text>
-      </View>
-    );
-  }
 
   const times = [
     '5AM', '6AM', '7AM', '8AM', '9AM', '10AM', '11AM',
@@ -122,9 +65,6 @@ export default function SimpleDiary() {
           <Text style={styles.headerDate}>
             {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
           </Text>
-          <TouchableOpacity onPress={handleSignOut} style={styles.signOutButton}>
-            <Text style={styles.signOutText}>Sign Out</Text>
-          </TouchableOpacity>
         </View>
 
         {/* Entries */}
@@ -170,9 +110,6 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     paddingHorizontal: 20, // px-5 = 20px
     paddingVertical: 24, // py-6 = 24px
     borderBottomWidth: 1,
@@ -269,26 +206,5 @@ const styles = StyleSheet.create({
     fontSize: 14, // text-sm = 14px
     color: '#000000',
     textAlign: 'left',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-  },
-  loadingText: {
-    fontSize: 16,
-    color: '#6b7280',
-  },
-  signOutButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-    backgroundColor: '#f3f4f6',
-  },
-  signOutText: {
-    fontSize: 14,
-    color: '#374151',
-    fontWeight: '500',
   },
 });
