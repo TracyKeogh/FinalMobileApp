@@ -11,10 +11,12 @@ export default function SimpleDiary() {
   ];
 
   const updateEntry = useCallback((key: string, value: string) => {
-    setEntries((prev) => ({
-      ...prev,
-      [key]: value
-    }));
+    setTimeout(() => {
+      setEntries((prev) => ({
+        ...prev,
+        [key]: value
+      }));
+    }, 0);
   }, []);
 
   const Slot = memo(({ time, slot, value, onUpdate }: { 
@@ -35,8 +37,9 @@ export default function SimpleDiary() {
           placeholderTextColor="#d1d5db"
           autoCorrect={false}
           autoCapitalize="none"
-          multiline={true}
-          textAlignVertical="top"
+          multiline={false}
+          underlineColorAndroid="transparent"
+          selectionColor="#000000"
         />
       </View>
     );
@@ -143,7 +146,8 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: 0,
     minHeight: 20,
-    textAlignVertical: 'top',
+    borderWidth: 0,
+    backgroundColor: 'transparent',
     // outline-none equivalent (no border/outline)
   },
   presetButtonContainer: {
