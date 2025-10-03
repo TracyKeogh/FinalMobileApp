@@ -10,7 +10,10 @@
     "newArchEnabled": true,
     "description": "A simple and clean diary app to track your daily activities by time slots.",
     "privacy": "public",
-    "platforms": ["ios", "android"],
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.simplediaryapp.diary"
@@ -28,7 +31,10 @@
       "output": "single",
       "favicon": "./assets/images/favicon.png"
     },
-    "plugins": ["expo-router", "expo-font"],
+    "plugins": [
+      "expo-router",
+      "expo-font"
+    ],
     "experiments": {
       "typedRoutes": true
     },
@@ -36,6 +42,7 @@
       "eas": {
         "projectId": "88f9a9ef-f63f-4b62-a83b-8adc12d755a6"
       }
-    }
+    },
+    "owner": "tracykeogh0"
   }
 }
