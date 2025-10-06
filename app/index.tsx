@@ -1,8 +1,10 @@
-import { View, Text, StyleSheet, ScrollView, TextInput } from 'react-native';
-import { useState, useCallback, useRef, memo } from 'react';
+import { View, Text, StyleSheet, ScrollView, TextInput, ActivityIndicator } from 'react-native';
+import { useState, useCallback, useRef, memo, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
 
 export default function SimpleDiary() {
   const [entries, setEntries] = useState<{ [key: string]: string }>({});
+  const [loading, setLoading] = useState(true);
 
   const times = [
     '5AM', '6AM', '7AM', '8AM', '9AM', '10AM', '11AM',
@@ -10,11 +12,66 @@ export default function SimpleDiary() {
     '7PM', '8PM', '9PM', '10PM', '11PM'
   ];
 
-  const updateEntry = useCallback((key: string, value: string) => {
+  useEffect(() => {
+    loadEntries();
+  }, []);
+
+  const loadEntries = async () => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const { data, error } = await supabase
+        .from('diary_entries')
+        .select('*')
+        .eq('entry_date', today);
+
+      if (error) throw error;
+
+      if (data) {
+        const loadedEntries: { [key: string]: string } = {};
+        data.forEach((entry) => {
+          loadedEntries[entry.time_slot] = entry.content;
+        });
+        setEntries(loadedEntries);
+      }
+    } catch (error) {
+      console.error('Error loading entries:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateEntry = useCallback(async (key: string, value: string) => {
     setEntries((prev) => ({
       ...prev,
       [key]: value
     }));
+
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const { data: existing } = await supabase
+        .from('diary_entries')
+        .select('id')
+        .eq('time_slot', key)
+        .eq('entry_date', today)
+        .maybeSingle();
+
+      if (existing) {
+        await supabase
+          .from('diary_entries')
+          .update({ content: value })
+          .eq('id', existing.id);
+      } else {
+        await supabase
+          .from('diary_entries')
+          .insert({
+            time_slot: key,
+            content: value,
+            entry_date: today
+          });
+      }
+    } catch (error) {
+      console.error('Error saving entry:', error);
+    }
   }, []);
 
   const Slot = memo(({ time, slot, initialValue, onUpdate }: { 
@@ -56,10 +113,18 @@ export default function SimpleDiary() {
     );
   });
 
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <ActivityIndicator size="large" color="#000000" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.maxWidth}>
-        
+
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerDate}>
@@ -102,6 +167,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#ffffff',
+  },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   maxWidth: {
     flex: 1,
@@ -152,15 +221,13 @@ const styles = StyleSheet.create({
   },
   slotInput: {
     flex: 1,
-    fontSize: 14, // text-sm = 14px
+    fontSize: 14,
     color: '#000000',
     paddingVertical: 4,
     paddingHorizontal: 0,
     minHeight: 20,
     borderWidth: 0,
     backgroundColor: 'transparent',
-    outlineStyle: 'none',
-    // outline-none equivalent (no border/outline)
   },
   presetButtonContainer: {
     position: 'relative',
