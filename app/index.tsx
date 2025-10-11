@@ -1,8 +1,28 @@
-import { View, Text, StyleSheet, ScrollView, TextInput, ActivityIndicator } from 'react-native';
-import { useState, useCallback, useRef, memo, useEffect } from 'react';
-// import { supabase } from '@/lib/supabase';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useState, useCallback, memo, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import { router } from 'expo-router';
 
-export default function SimpleDiary() {
+export default function DailyPlanner() {
+  const { user, loading: authLoading, signOut } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace('/auth');
+    }
+  }, [user, authLoading]);
+
+  if (authLoading) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <ActivityIndicator size="large" color="#3b82f6" />
+      </View>
+    );
+  }
+
+  if (!user) {
+    return null; // Will redirect to auth
+  }
   const [entries, setEntries] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(true);
 
@@ -18,12 +38,7 @@ export default function SimpleDiary() {
 
   const loadEntries = async () => {
     try {
-      // Load from local storage instead of Supabase
-      const today = new Date().toISOString().split('T')[0];
-      const storageKey = `diary_entries_${today}`;
-      
-      // For now, just set loading to false
-      // In a real app, you'd load from AsyncStorage here
+      // For now, just load empty entries
       setLoading(false);
     } catch (error) {
       console.error('Error loading entries:', error);
@@ -31,55 +46,46 @@ export default function SimpleDiary() {
     }
   };
 
-  const updateEntry = useCallback(async (key: string, value: string) => {
+  const updateEntry = useCallback((blockId: string, value: string) => {
     setEntries((prev) => ({
       ...prev,
-      [key]: value
+      [blockId]: value
     }));
-
-    try {
-      // Save to local storage instead of Supabase
-      // In a real app, you'd save to AsyncStorage here
-      console.log('Entry saved locally:', key, value);
-    } catch (error) {
-      console.error('Error saving entry:', error);
-    }
   }, []);
 
-  const Slot = memo(({ time, slot, initialValue, onUpdate }: { 
-    time: string; 
-    slot: number; 
-    initialValue: string;
-    onUpdate: (key: string, text: string) => void;
-  }) => {
-    const key = `${time}-${slot}`;
-    const inputRef = useRef<TextInput>(null);
-    const [currentText, setCurrentText] = useState(initialValue);
+  const saveEntries = async () => {
+    setSaving(true);
+    try {
+      // For now, just simulate saving
+      console.log('Saving entries:', entries);
+      // TODO: Add Supabase saving back when auth is working
+    } catch (error) {
+      console.error('Error saving entries:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const TimeSlot = memo(({ slot }: { slot: { id: string; time: string; hour: number; placeholder: string } }) => {
+    const [currentText, setCurrentText] = useState(entries[slot.id] || '');
 
     const handleTextChange = (text: string) => {
       setCurrentText(text);
-    };
-
-    const handleBlur = () => {
-      onUpdate(key, currentText);
+      updateEntry(slot.id, text);
     };
 
     return (
-      <View style={styles.slotContainer}>
+      <View style={styles.timeSlot}>
+        <Text style={styles.timeLabel}>{slot.time}</Text>
         <TextInput
-          ref={inputRef}
           style={styles.slotInput}
           value={currentText}
           onChangeText={handleTextChange}
-          onBlur={handleBlur}
-          placeholder="Type here"
-          placeholderTextColor="#d1d5db"
-          autoCorrect={false}
-          autoCapitalize="none"
+          placeholder={slot.placeholder}
+          placeholderTextColor="#9ca3af"
           multiline={false}
-          underlineColorAndroid="transparent"
-          selectionColor="transparent"
-          textAlignVertical="center"
+          autoCorrect={false}
+          selectionColor="#3b82f6"
         />
       </View>
     );
@@ -88,48 +94,51 @@ export default function SimpleDiary() {
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color="#000000" />
+        <ActivityIndicator size="large" color="#3b82f6" />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <View style={styles.maxWidth}>
-
+      <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerDate}>
-            {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
-          </Text>
+          <View style={styles.headerContent}>
+            <Text style={styles.headerDate}>
+              {new Date().toLocaleDateString('en-US', { 
+                weekday: 'long',
+                month: 'long', 
+                day: 'numeric' 
+              })}
+            </Text>
+            <TouchableOpacity onPress={signOut} style={styles.signOutButton}>
+              <Text style={styles.signOutText}>Sign Out</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
-        {/* Entries */}
-        <ScrollView style={styles.entriesContainer}>
-          {times.map((time) => (
-            <View key={time} style={styles.timeRow}>
-              <View style={styles.timeRowContent}>
-                <View style={styles.timeLabel}>
-                  <Text style={styles.timeText}>{time}</Text>
-                </View>
-                <View style={styles.slotsContainer}>
-                  <Slot 
-                    time={time} 
-                    slot={1} 
-                    initialValue={entries[`${time}-1`] || ''} 
-                    onUpdate={updateEntry}
-                  />
-                  <Slot 
-                    time={time} 
-                    slot={2} 
-                    initialValue={entries[`${time}-2`] || ''} 
-                    onUpdate={updateEntry}
-                  />
-                </View>
-              </View>
-            </View>
+        {/* Time Slots */}
+        <View style={styles.slotsContainer}>
+          {timeSlots.map((slot) => (
+            <TimeSlot key={slot.id} slot={slot} />
           ))}
-        </ScrollView>
+        </View>
+      </ScrollView>
+
+      {/* Save Button */}
+      <View style={styles.saveContainer}>
+        <TouchableOpacity 
+          style={[styles.saveButton, saving && styles.saveButtonDisabled]} 
+          onPress={saveEntries}
+          disabled={saving}
+        >
+          {saving ? (
+            <ActivityIndicator size="small" color="#ffffff" />
+          ) : (
+            <Text style={styles.saveButtonText}>Save</Text>
+          )}
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -138,112 +147,116 @@ export default function SimpleDiary() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#f8fafc',
   },
   centerContent: {
     justifyContent: 'center',
     alignItems: 'center',
   },
-  maxWidth: {
+  scrollContainer: {
     flex: 1,
-    maxWidth: 384, // max-w-sm = 384px
-    alignSelf: 'center',
-    width: '100%',
+  },
+  scrollContent: {
+    paddingBottom: 100, // Space for save button
   },
   header: {
-    paddingHorizontal: 20, // px-5 = 20px
-    paddingVertical: 24, // py-6 = 24px
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+    backgroundColor: '#ffffff',
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
+  },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   headerDate: {
-    fontSize: 24, // text-2xl = 24px
-    fontWeight: '300', // font-light = 300
-    color: '#000000',
-  },
-  entriesContainer: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#1f2937',
     flex: 1,
+    textAlign: 'center',
   },
-  timeRow: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+  signOutButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: '#ef4444',
+    borderRadius: 6,
   },
-  timeRowContent: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  timeLabel: {
-    width: 64, // w-16 = 64px
-    paddingTop: 16, // pt-4 = 16px
-    paddingLeft: 20, // pl-5 = 20px
-  },
-  timeText: {
-    fontSize: 12, // text-xs = 12px
-    color: '#9ca3af', // text-gray-400
+  signOutText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '500',
   },
   slotsContainer: {
-    flex: 1,
-    paddingVertical: 12, // py-3 = 12px
-    paddingRight: 20, // pr-5 = 20px
+    padding: 20,
   },
-  slotContainer: {
+  timeSlot: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8, // py-2 = 8px
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 8,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  timeLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+    width: 80,
+    textAlign: 'left',
   },
   slotInput: {
     flex: 1,
-    fontSize: 14,
-    color: '#000000',
-    paddingVertical: 4,
-    paddingHorizontal: 0,
-    minHeight: 20,
-    borderWidth: 0,
-    backgroundColor: 'transparent',
+    fontSize: 16,
+    color: '#1f2937',
+    marginLeft: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#f9fafb',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
   },
-  presetButtonContainer: {
-    position: 'relative',
-    marginLeft: 8, // gap-2 equivalent
-  },
-  presetButton: {
-    padding: 4, // p-1 = 4px
-    borderRadius: 4,
-    backgroundColor: 'transparent',
-  },
-  presetButtonHover: {
-    backgroundColor: '#f3f4f6', // hover:bg-gray-100
-  },
-  presetDropdown: {
+  saveContainer: {
     position: 'absolute',
-    top: '100%', // top-full
-    right: 0, // right-0
-    marginTop: 4, // mt-1 = 4px
-    backgroundColor: '#ffffff', // bg-white
-    borderWidth: 1, // border
-    borderColor: '#d1d5db',
-    shadowColor: '#000000',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    paddingBottom: 34, // Account for home indicator
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+  },
+  saveButton: {
+    backgroundColor: '#3b82f6',
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#3b82f6',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25, // shadow-lg
+    shadowOpacity: 0.2,
     shadowRadius: 8,
-    elevation: 8,
-    zIndex: 10, // z-10
-    width: 192, // w-48 = 192px
+    elevation: 4,
   },
-  presetItem: {
-    paddingVertical: 8, // py-2 = 8px
-    paddingHorizontal: 12, // px-3 = 12px
-    borderBottomWidth: 1, // border-b
-    borderBottomColor: '#e5e7eb',
+  saveButtonDisabled: {
+    backgroundColor: '#9ca3af',
+    shadowOpacity: 0,
   },
-  presetItemLast: {
-    borderBottomWidth: 0, // last:border-b-0
-  },
-  presetItemHover: {
-    backgroundColor: '#f9fafb', // hover:bg-gray-50
-  },
-  presetItemText: {
-    fontSize: 14, // text-sm = 14px
-    color: '#000000',
-    textAlign: 'left',
+  saveButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

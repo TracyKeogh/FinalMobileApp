@@ -9,7 +9,6 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "description": "A simple and clean diary app to track your daily activities by time slots.",
-    "privacy": "public",
     "platforms": ["ios", "android", "web"],
     "ios": {
       "supportsTablet": true,
