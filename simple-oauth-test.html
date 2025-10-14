@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple OAuth Test</title>
+</head>
+<body>
+    <h1>Simple OAuth Test</h1>
+    <button onclick="testOAuth()">Test Google OAuth</button>
+    
+    <script>
+        function testOAuth() {
+            // Hard-coded URL to avoid any JavaScript issues
+            const url = 'https://accounts.google.com/oauth/authorize?client_id=579431569676-53ejmft2l1hhe8g8mit1aqqtfe1hm9fl.apps.googleusercontent.com&redirect_uri=https%3A%2F%2Fhttpbin.org%2Fget&response_type=code&scope=openid+email+profile&access_type=offline&prompt=consent&state=test';
+            
+            console.log('Opening URL:', url);
+            window.open(url, '_blank');
+        }
+    </script>
+</body>
+</html>

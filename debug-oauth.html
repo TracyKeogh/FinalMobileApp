@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAuth Debug Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .button {
+            background: #4285f4;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 0;
+            display: block;
+            width: 100%;
+        }
+        .button:hover {
+            background: #3367d6;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #17a2b8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>OAuth Debug Test</h1>
+        <p>This page tests the OAuth flow to see what redirect URIs are being used.</p>
+        
+        <button class="button" onclick="testSupabaseOAuth()">
+            Test Supabase OAuth Flow
+        </button>
+        
+        <button class="button" onclick="testDirectGoogleOAuth()">
+            Test Direct Google OAuth
+        </button>
+        
+        <div id="log" class="log">Click a button above to start testing...</div>
+    </div>
+
+    <script>
+        const log = document.getElementById('log');
+        
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            log.innerHTML += `<span class="${type}">[${timestamp}] ${message}</span>\n`;
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function testSupabaseOAuth() {
+            addLog('Testing Supabase OAuth flow...', 'info');
+            
+            // Test what Supabase generates
+            const supabaseUrl = 'https://bqxypskdebsesfwpqrfv.supabase.co';
+            const redirectUri = 'https://coachpack.org/auth/callback';
+            
+            addLog(`Supabase URL: ${supabaseUrl}`, 'info');
+            addLog(`Redirect URI: ${redirectUri}`, 'info');
+            
+            // Construct the OAuth URL that Supabase would generate
+            const oauthUrl = `${supabaseUrl}/auth/v1/authorize?` +
+                `provider=google&` +
+                `redirect_to=${encodeURIComponent(redirectUri)}`;
+            
+            addLog(`Generated OAuth URL: ${oauthUrl}`, 'info');
+            
+            // Test if this would redirect to our domain
+            if (oauthUrl.includes('coachpack.org')) {
+                addLog('✅ OAuth URL includes our domain - should work!', 'success');
+            } else {
+                addLog('❌ OAuth URL does not include our domain', 'error');
+            }
+        }
+
+        function testDirectGoogleOAuth() {
+            addLog('Testing Direct Google OAuth...', 'info');
+            
+            const clientId = '579431569676-53ejmft2l1hhe8g8mit1aqqtfe1hm9fl.apps.googleusercontent.com';
+            const redirectUri = 'https://coachpack.org/auth/callback';
+            
+            const googleOAuthUrl = `https://accounts.google.com/oauth/authorize?` +
+                `client_id=${clientId}&` +
+                `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+                `response_type=code&` +
+                `scope=openid%20email%20profile&` +
+                `access_type=offline&` +
+                `prompt=consent`;
+            
+            addLog(`Direct Google OAuth URL: ${googleOAuthUrl}`, 'info');
+            
+            // Open the OAuth URL
+            addLog('Opening OAuth URL in new window...', 'info');
+            window.open(googleOAuthUrl, '_blank');
+        }
+
+        // Check current URL for OAuth callback
+        if (window.location.hash || window.location.search) {
+            addLog('OAuth callback detected!', 'success');
+            addLog(`Current URL: ${window.location.href}`, 'info');
+            addLog(`Hash: ${window.location.hash}`, 'info');
+            addLog(`Search: ${window.location.search}`, 'info');
+        }
+    </script>
+</body>
+</html>

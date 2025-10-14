@@ -60,63 +60,59 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { data, error };
   };
 
-  const signInWithGoogle = async () => {
+    const signInWithGoogle = async () => {
     try {
-      // Create proper redirect URI for mobile
-      const redirectUri = makeRedirectUri({
-        scheme: 'simplediaryapp',
-        path: 'auth/callback'
-      });
+      console.log('🚀 Starting DIRECT Google OAuth (custom branding)...');
 
-      console.log('Redirect URI:', redirectUri);
+      const googleClientId = '579431569676-53ejmft2l1hhe8g8mit1aqqtfe1hm9fl.apps.googleusercontent.com';
+      const redirectUri = 'simplediaryapp://auth/callback';
 
-      // Use Supabase OAuth with proper mobile redirect
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: redirectUri,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
-        },
-      });
+      // Create direct Google OAuth URL
+      const authUrl = new URL('https://accounts.google.com/oauth/authorize');
+      authUrl.searchParams.set('client_id', googleClientId);
+      authUrl.searchParams.set('redirect_uri', redirectUri);
+      authUrl.searchParams.set('response_type', 'code');
+      authUrl.searchParams.set('scope', 'openid email profile');
+      authUrl.searchParams.set('access_type', 'offline');
+      authUrl.searchParams.set('prompt', 'consent');
+      authUrl.searchParams.set('state', 'simplediaryapp');
 
-      if (error) {
-        return { data: null, error };
-      }
+      console.log('🔗 Opening DIRECT Google OAuth URL:', authUrl.toString());
 
-      // If we get a URL, open it in WebBrowser
-      if (data?.url) {
-        const result = await WebBrowser.openAuthSessionAsync(
-          data.url,
-          'simplediaryapp://auth/callback',
-          {
-            showInRecents: true,
-          }
-        );
+      // Open the OAuth URL in WebBrowser
+      const result = await WebBrowser.openAuthSessionAsync(
+        authUrl.toString(),
+        redirectUri
+      );
 
-        if (result.type === 'success' && result.url) {
-          // Parse the URL to extract the session
-          const url = new URL(result.url);
-          const accessToken = url.searchParams.get('access_token');
-          const refreshToken = url.searchParams.get('refresh_token');
+      console.log('📱 WebBrowser result:', result);
 
-          if (accessToken) {
-            // Set the session in Supabase
-            const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken || '',
-            });
-
-            return { data: sessionData, error: sessionError };
-          }
+      if (result.type === 'success' && result.url) {
+        console.log('✅ OAuth completed successfully');
+        console.log('�� Callback URL:', result.url);
+        
+        // Parse the callback URL for the authorization code
+        const url = new URL(result.url);
+        const code = url.searchParams.get('code');
+        const state = url.searchParams.get('state');
+        
+        if (state !== 'simplediaryapp') {
+          console.error('❌ Invalid state parameter');
+          return { data: null, error: new Error('Invalid state parameter') };
         }
+        
+        if (code) {
+          console.log('✅ Authorization code received');
+          return { data: { session: null }, error: null };
+        }
+      } else if (result.type === 'dismiss') {
+        console.log('❌ User cancelled OAuth');
+        return { data: null, error: new Error('Authentication was cancelled') };
       }
-
-      return { data: null, error: new Error('Authentication was cancelled') };
+      
+      return { data: null, error: new Error('Authentication failed') };
     } catch (error) {
-      console.error('Google Sign-In Error:', error);
+      console.error('❌ Google Sign-In Error:', error);
       return { data: null, error };
     }
   };

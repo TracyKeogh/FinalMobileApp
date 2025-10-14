@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Supabase Redirect URI</title>
+</head>
+<body>
+    <h1>Test Supabase Redirect URI</h1>
+    <p>This tests with the Supabase redirect URI that should definitely work.</p>
+    
+    <a href="https://accounts.google.com/oauth/authorize?client_id=579431569676-53ejmft2l1hhe8g8mit1aqqtfe1hm9fl.apps.googleusercontent.com&redirect_uri=https%3A%2F%2Fbqxypskdebsesfwpqrfv.supabase.co%2Fauth%2Fv1%2Fcallback&response_type=code&scope=openid+email+profile&access_type=offline&prompt=consent&state=test" 
+       target="_blank" 
+       style="display: inline-block; padding: 15px 30px; background: #4285f4; color: white; text-decoration: none; border-radius: 5px; font-size: 16px;">
+        Test Google OAuth with Supabase Redirect
+    </a>
+    
+    <h2>What to look for:</h2>
+    <ul>
+        <li>Does it show "Continue to [Your App Name]" or "Continue to Supabase"?</li>
+        <li>Does it work (show OAuth consent screen) or give a 404 error?</li>
+    </ul>
+</body>
+</html>

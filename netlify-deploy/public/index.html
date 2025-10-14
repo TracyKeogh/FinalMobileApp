@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Diary OAuth Server</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 1rem;
+            backdrop-filter: blur(10px);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .status {
+            background: rgba(76, 175, 80, 0.2);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid #4caf50;
+        }
+        .endpoint {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            font-family: monospace;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Simple Diary OAuth Server</h1>
+        
+        <div class="status">
+            <strong>✅ Server is running!</strong><br>
+            Your Netlify function is deployed and ready to handle Google OAuth token exchanges.
+        </div>
+        
+        <h2>📡 Available Endpoints</h2>
+        
+        <div class="endpoint">
+            <strong>POST</strong> /.netlify/functions/google-auth<br>
+            <em>Handles Google OAuth token exchange securely</em>
+        </div>
+        
+        <h2>🔐 Security Features</h2>
+        <ul>
+            <li>✅ State parameter validation (CSRF protection)</li>
+            <li>✅ Rate limiting (10 requests/minute per IP)</li>
+            <li>✅ CORS headers (restrict to coachpack.org)</li>
+            <li>✅ Input validation</li>
+            <li>✅ Server-side token exchange</li>
+            <li>✅ Secure error handling</li>
+        </ul>
+        
+        <h2>📱 Next Steps</h2>
+        <ol>
+            <li>Update your mobile app with this Netlify URL</li>
+            <li>Set environment variables in Netlify dashboard</li>
+            <li>Test the OAuth flow</li>
+            <li>Enjoy custom-branded authentication! 🎉</li>
+        </ol>
+    </div>
+</body>
+</html>
